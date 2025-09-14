@@ -1,7 +1,7 @@
 # Slow Seas 🌊⛵
 
 **Slow Seas** is an interactive 3D maritime simulation built with **Three.js**. Control your boat, explore the ocean, and enjoy an immersive visual and audio environment with day/night cycles and dynamic weather.
-
+> **Inspired by:** [Slow Roads](https://slowroads.io/)
 ---
 
 ## Features
