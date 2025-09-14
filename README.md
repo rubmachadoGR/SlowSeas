@@ -4,18 +4,6 @@
 
 ---
 
-## Demo & Controls
-
-- Boat movement: **W/A/S/D** or **Arrow keys**
-- Pause: **P**
-- Switch camera: **C**
-- Toggle sound: **M**
-- Top panel for quick actions and navigation metrics.
-
-![Minimap and UI](screenshot.png)
-
----
-
 ## Features
 
 - **Realistic 3D Environment**
