@@ -507,8 +507,8 @@ function createIslandBanner(imgPath) {
     transparent: true
   });
   const flag = new THREE.Mesh(flagGeo, flagMat);
-  flag.scale.set(3, 3, 1); // x3 no tamanho
   flag.position.set(1.6, 4, 0); // preso no topo do poste
+  flag.scale.set(3, 3, 1); // x3 no tamanho
   group.add(flag);
 
   return group;
