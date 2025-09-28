@@ -513,52 +513,13 @@ function createIslandBanner(imgPath) {
 
   // Posiciona bandeira acima do poste
   const flagHeight = 2.4 * 3; // altura após escala
-  flag.position.set(0, 5 + flagHeight / 2, 0); // y = topo do poste + metade da altura
+  flag.position.set(0, 5 + flagHeight, 0); // y = topo do poste + metade da altura
 
   group.add(flag);
 
   return group;
 }
 
-
-
-	function createBanner(textureUrl = null) {
-	  const group = new THREE.Group();
-
-	  // Poste
-	  const poleGeo = new THREE.CylinderGeometry(0.1, 0.15, 6, 8);
-	  const poleMat = new THREE.MeshStandardMaterial({ color: 0x8b7765, roughness: 1.0 });
-	  const pole = new THREE.Mesh(poleGeo, poleMat);
-	  pole.position.y = 3;
-	  group.add(pole);
-
-	  // Bandeira (plano)
-	  const flagGeo = new THREE.PlaneGeometry(3, 1.8, 12, 6); // segmentos para ondulação
-	  let flagMat;
-	  if (textureUrl) {
-		const tex = new THREE.TextureLoader().load(textureUrl);
-		tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-		flagMat = new THREE.MeshStandardMaterial({
-		  map: tex,
-		  side: THREE.DoubleSide,
-		});
-	  } else {
-		flagMat = new THREE.MeshStandardMaterial({
-		  color: 0xff0000,
-		  side: THREE.DoubleSide,
-		});
-	  }
-	  const flag = new THREE.Mesh(flagGeo, flagMat);
-	  flag.position.set(1.7, 4.2, 0); // ao lado do topo do poste
-	  flag.castShadow = true;
-	  group.add(flag);
-
-	  // Guardar para animar depois
-	  flag.userData.originalPosition = flag.geometry.attributes.position.array.slice();
-	  group.userData.flag = flag;
-
-	  return group;
-	}
 
 
 
