@@ -493,26 +493,34 @@ function createIslandBanner(imgPath) {
   const poleGeo = new THREE.CylinderGeometry(0.1, 0.1, 5, 8);
   const poleMat = new THREE.MeshStandardMaterial({ color: 0x8b7765 });
   const pole = new THREE.Mesh(poleGeo, poleMat);
-  pole.position.y = 2.5;
+  pole.position.y = 2.5; // topo em y=5
   group.add(pole);
 
   // Bandeira / cartaz (plano com textura)
   const tex = new THREE.TextureLoader().load(imgPath);
-  //const flagGeo = new THREE.PlaneGeometry(3.6, 2.4);
-  const flagGeo = new THREE.PlaneGeometry(3.6, 2.4, 4, 4); // 3x maior
-  //const flagMat = new THREE.MeshStandardMaterial({
+  const flagGeo = new THREE.PlaneGeometry(3.6, 2.4, 4, 4);
+
+  // Ajusta geometria para que o topo fique na origem
+  flagGeo.translate(0, -2.4 / 2, 0);
+
   const flagMat = new THREE.MeshBasicMaterial({
     map: tex,
     side: THREE.DoubleSide,
     transparent: true
   });
   const flag = new THREE.Mesh(flagGeo, flagMat);
-  flag.position.set(1.6, 4, 0); // preso no topo do poste
-  flag.scale.set(3, 3, 1); // x3 no tamanho
+
+  // Escala 3x
+  flag.scale.set(3, 3, 1);
+
+  // Posiciona bandeira no topo do poste
+  flag.position.set(0, 5, 0);
+
   group.add(flag);
 
   return group;
 }
+
 
 
 	function createBanner(textureUrl = null) {
