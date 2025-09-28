@@ -496,12 +496,10 @@ function createIslandBanner(imgPath) {
   pole.position.y = 2.5; // topo em y=5
   group.add(pole);
 
-  // Bandeira / cartaz (plano com textura)
+  // Bandeira / cartaz
   const tex = new THREE.TextureLoader().load(imgPath);
   const flagGeo = new THREE.PlaneGeometry(3.6, 2.4, 4, 4);
-
-  // Ajusta geometria para que o topo fique na origem
-  flagGeo.translate(0, -2.4 / 2, 0);
+  flagGeo.translate(0, -2.4 / 2, 0); // move topo para a origem
 
   const flagMat = new THREE.MeshBasicMaterial({
     map: tex,
@@ -513,8 +511,9 @@ function createIslandBanner(imgPath) {
   // Escala 3x
   flag.scale.set(3, 3, 1);
 
-  // Posiciona bandeira no topo do poste
-  flag.position.set(0, 5, 0);
+  // Posiciona bandeira acima do poste
+  const flagHeight = 2.4 * 3; // altura após escala
+  flag.position.set(0, 5 + flagHeight / 2, 0); // y = topo do poste + metade da altura
 
   group.add(flag);
 
