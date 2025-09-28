@@ -336,8 +336,10 @@
         g.add(railRight);
 
         // Bandeira
-        const flagGeo = new THREE.PlaneGeometry(1.2, 0.8, 4, 4);
-        const flagMat = new THREE.MeshStandardMaterial({
+        //const flagGeo = new THREE.PlaneGeometry(1.2, 0.8, 4, 4);
+        const flagGeo = new THREE.PlaneGeometry(3.6, 2.4, 4, 4); // 3x maior
+		//flag.scale.set(3, 3, 1); // X e Y 3x maior, Z mantém 1 - geometria original e simplesmente escalar o objeto
+		const flagMat = new THREE.MeshStandardMaterial({
           color: 0xff3333,
           side: THREE.DoubleSide,
           transparent: true,
@@ -484,7 +486,7 @@
       }
 
 
-function createIslandBanner(imgPath) {
+function createIslandBanner_OLD(imgPath) {
   const group = new THREE.Group();
 
   // Poste
@@ -508,6 +510,26 @@ function createIslandBanner(imgPath) {
 
   return group;
 }
+
+function createIslandBanner(imgPath){
+    const tex = new THREE.TextureLoader().load(imgPath);
+
+    const flagMat = new THREE.MeshBasicMaterial({
+        map: tex,
+        side: THREE.DoubleSide,
+        transparent: true
+    });
+
+    const flagGeo = new THREE.PlaneGeometry(3.6, 2.4); // maior bandeira
+    const flag = new THREE.Mesh(flagGeo, flagMat);
+
+    // Coloca no topo do mastro da ilha
+    flag.position.set(0, 6, 0); // ajustar altura
+    flag.rotation.y = Math.PI / 2;
+
+    return flag;
+}
+
 
 
 
