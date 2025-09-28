@@ -498,7 +498,7 @@ function createIslandBanner(imgPath) {
 
   // Bandeira / cartaz (plano com textura)
   const tex = new THREE.TextureLoader().load(imgPath);
-  const flagGeo = new THREE.PlaneGeometry(3, 2);
+  const flagGeo = new THREE.PlaneGeometry(3.6, 2.4);
   const flagMat = new THREE.MeshStandardMaterial({
     map: tex,
     side: THREE.DoubleSide,
@@ -510,27 +510,6 @@ function createIslandBanner(imgPath) {
 
   return group;
 }
-
-function createIslandBanner_NEW(imgPath){
-    const tex = new THREE.TextureLoader().load(imgPath);
-
-    const flagMat = new THREE.MeshBasicMaterial({
-        map: tex,
-        side: THREE.DoubleSide,
-        transparent: true
-    });
-
-    const flagGeo = new THREE.PlaneGeometry(3.6, 2.4); // maior bandeira
-    const flag = new THREE.Mesh(flagGeo, flagMat);
-
-    // Coloca no topo do mastro da ilha
-    flag.position.set(0, 6, 0); // ajustar altura
-    flag.rotation.y = Math.PI / 2;
-
-    return flag;
-}
-
-
 
 
 	function createBanner(textureUrl = null) {
