@@ -182,6 +182,19 @@
         scene.add(boat);
         lastPos.copy(boat.position);
 
+        // --- adicionar ilha ---
+        // Posição: altera X,Z para colocar onde entenderes; aqui deixo um pouco à frente/do lado do ponto inicial.
+        const islandGroup = createIsland(48, 160, 9);
+        islandGroup.position.set(-60, 0, -140); // muda estes valores se quiseres a ilha noutro local
+        scene.add(islandGroup);
+
+		const banner = createIslandBanner('google.png'); 
+		banner.position.set(10, 5, -8); // (X,Z) = centro da ilha, Y = altura
+		islandGroup.add(banner);
+
+
+		
+
         // Trilho
         const trailGeo = new THREE.BufferGeometry();
         const posArr = new Float32Array(trailMax*3);
@@ -374,6 +387,213 @@
 
         return g;
       }
+
+      // --- ISLA / PALMEIRAS ---
+      function createIsland(radius = 40, segments = 128, height = 8) {
+        // Plane circular para a ilha
+        const geo = new THREE.PlaneGeometry(radius*2, radius*2, segments, segments);
+        geo.rotateX(-Math.PI/2); // ficar plano no eixo XZ
+
+        // Deslocar vértices para formar uma colina com praia suave
+        const pos = geo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          const vx = pos.getX(i);
+          const vz = pos.getZ(i);
+          const d = Math.sqrt(vx*vx + vz*vz) / radius; // 0..1
+          // perfil: pico no centro, decresce até a orla (mais suave)
+          const mound = Math.max(0, Math.cos(d * Math.PI) ) ** 1.6;
+          // adição de variação rústica
+          const noise = (Math.sin(vx*0.12) + Math.cos(vz*0.09)) * 0.6;
+          const y = mound * height + noise * (1.0 - d) * 0.6 - 0.6 * (1 - d); // ligeiro afundamento perto da orla
+          pos.setY(i, y);
+        }
+        geo.computeVertexNormals();
+
+        // Material de "areia" com uma variação sutil
+        const sandMat = new THREE.MeshStandardMaterial({
+          color: 0xE6D5B8,
+          roughness: 1.0,
+          metalness: 0.0,
+        });
+
+        const island = new THREE.Mesh(geo, sandMat);
+        island.receiveShadow = true;
+        island.castShadow = false;
+
+        // Criar um anel de praia mais claro (simples: outro plano sobreposto com máscara por distância)
+        const beachGeo = new THREE.PlaneGeometry(radius*2, radius*2, segments, segments);
+        beachGeo.rotateX(-Math.PI/2);
+        const bpos = beachGeo.attributes.position;
+        for (let i = 0; i < bpos.count; i++) {
+          const vx = bpos.getX(i);
+          const vz = bpos.getZ(i);
+          const d = Math.sqrt(vx*vx + vz*vz) / radius;
+          // Beach: apenas nos pontos com d entre ~0.6 e 1.02
+          const mask = THREE.MathUtils.clamp((1.02 - d)/0.42, 0, 1);
+          // empurra ligeiramente para cima para evitar z-fighting
+          const y = (mask > 0.02) ? 0.06 + mask*0.2 : -10;
+          bpos.setY(i, y);
+        }
+        beachGeo.computeVertexNormals();
+        const beachMat = new THREE.MeshStandardMaterial({
+          color: 0xF6E9D1,
+          roughness: 1.0,
+          metalness: 0.0,
+          transparent: true,
+          opacity: 0.95
+        });
+        const beach = new THREE.Mesh(beachGeo, beachMat);
+        beach.renderOrder = 1;
+
+        const group = new THREE.Group();
+        group.add(island);
+        group.add(beach);
+
+        // Algumas rochas periféricas (simpleses)
+        const rockMat = new THREE.MeshStandardMaterial({ color: 0x7b6f60, roughness: 1.0 });
+        const rockCount = Math.max(6, Math.floor(radius / 6));
+        for (let i=0;i<rockCount;i++){
+          const theta = Math.random()*Math.PI*2;
+          const r = THREE.MathUtils.lerp(radius*0.65, radius*0.98, Math.random());
+          const rx = Math.cos(theta)*r;
+          const rz = Math.sin(theta)*r;
+          const s = THREE.MathUtils.lerp(1.0, 3.2, Math.random());
+          const rockGeo = new THREE.IcosahedronGeometry(s, 0);
+          const rock = new THREE.Mesh(rockGeo, rockMat);
+          rock.position.set(rx, 0.3 + Math.random()*0.8, rz);
+          rock.rotation.set(Math.random()*1.2, Math.random()*Math.PI, Math.random()*1.2);
+          rock.scale.setScalar(THREE.MathUtils.lerp(0.6, 1.6, Math.random()));
+          group.add(rock);
+        }
+
+        // Plantar algumas palmeiras
+        const palms = Math.max(5, Math.floor(radius/8));
+        for (let i=0;i<palms;i++){
+          const ang = Math.random()*Math.PI*2;
+          const r = THREE.MathUtils.lerp(0, radius*0.55, Math.random());
+          const px = Math.cos(ang)*r;
+          const pz = Math.sin(ang)*r;
+          const palm = createPalm();
+          palm.position.set(px, sampleHeightAtPosition(px, pz, island.geometry), pz);
+          palm.lookAt(palm.position.x, palm.position.y + 1.0, palm.position.z + 0.01);
+          palm.rotateY((Math.random()-0.5)*0.6);
+          group.add(palm);
+        }
+
+        return group;
+      }
+
+
+function createIslandBanner(imgPath) {
+  const group = new THREE.Group();
+
+  // Poste
+  const poleGeo = new THREE.CylinderGeometry(0.1, 0.1, 5, 8);
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0x8b7765 });
+  const pole = new THREE.Mesh(poleGeo, poleMat);
+  pole.position.y = 2.5;
+  group.add(pole);
+
+  // Bandeira / cartaz (plano com textura)
+  const tex = new THREE.TextureLoader().load(imgPath);
+  const flagGeo = new THREE.PlaneGeometry(3, 2);
+  const flagMat = new THREE.MeshStandardMaterial({
+    map: tex,
+    side: THREE.DoubleSide,
+    transparent: true
+  });
+  const flag = new THREE.Mesh(flagGeo, flagMat);
+  flag.position.set(1.6, 4, 0); // preso no topo do poste
+  group.add(flag);
+
+  return group;
+}
+
+
+
+	function createBanner(textureUrl = null) {
+	  const group = new THREE.Group();
+
+	  // Poste
+	  const poleGeo = new THREE.CylinderGeometry(0.1, 0.15, 6, 8);
+	  const poleMat = new THREE.MeshStandardMaterial({ color: 0x8b7765, roughness: 1.0 });
+	  const pole = new THREE.Mesh(poleGeo, poleMat);
+	  pole.position.y = 3;
+	  group.add(pole);
+
+	  // Bandeira (plano)
+	  const flagGeo = new THREE.PlaneGeometry(3, 1.8, 12, 6); // segmentos para ondulação
+	  let flagMat;
+	  if (textureUrl) {
+		const tex = new THREE.TextureLoader().load(textureUrl);
+		tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+		flagMat = new THREE.MeshStandardMaterial({
+		  map: tex,
+		  side: THREE.DoubleSide,
+		});
+	  } else {
+		flagMat = new THREE.MeshStandardMaterial({
+		  color: 0xff0000,
+		  side: THREE.DoubleSide,
+		});
+	  }
+	  const flag = new THREE.Mesh(flagGeo, flagMat);
+	  flag.position.set(1.7, 4.2, 0); // ao lado do topo do poste
+	  flag.castShadow = true;
+	  group.add(flag);
+
+	  // Guardar para animar depois
+	  flag.userData.originalPosition = flag.geometry.attributes.position.array.slice();
+	  group.userData.flag = flag;
+
+	  return group;
+	}
+
+
+
+      // função que tenta estimar a altura do terreno na malha (consulta os vértices mais próximos)
+      function sampleHeightAtPosition(x, z, geometry){
+        const pos = geometry.attributes.position;
+        let best = 0;
+        let bestD = Infinity;
+        for (let i=0;i<pos.count;i++){
+          const vx = pos.getX(i), vz = pos.getZ(i), vy = pos.getY(i);
+          const d = (vx - x)*(vx - x) + (vz - z)*(vz - z);
+          if (d < bestD){ bestD = d; best = vy; }
+        }
+        return best + 0.15;
+      }
+
+      function createPalm(){
+        const g = new THREE.Group();
+        // tronco
+        const h = THREE.MathUtils.lerp(4.2, 6.6, Math.random());
+        const trunkGeo = new THREE.CylinderGeometry(0.12, 0.28, h, 8);
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8b5a36, roughness: 1.0 });
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.y = h*0.5;
+        trunk.rotation.z = (Math.random()-0.5)*0.25;
+        g.add(trunk);
+
+        // coroas simples (folhas em conchas)
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x1f7a2d, roughness: 1.0, flatShading: true });
+        for (let i=0;i<5;i++){
+          const leafLen = THREE.MathUtils.lerp(2.6, 4.6, Math.random());
+          const leafGeo = new THREE.ConeGeometry(leafLen, leafLen*0.35, 6, 1, true);
+          // ajustar e rotacionar para ficar parecido com folha larga
+          const leaf = new THREE.Mesh(leafGeo, leafMat);
+          leaf.position.y = h - 0.3;
+          leaf.rotation.z = Math.PI*0.5 + (i-2)*0.25;
+          leaf.rotation.x = -0.7 + (Math.random()-0.5)*0.15;
+          leaf.rotation.y = (i/5)*Math.PI*2 + Math.random()*0.2;
+          leaf.scale.set(1.0, 1.0, 0.6);
+          g.add(leaf);
+        }
+        return g;
+      }
+
+
+
 
       function tryLoadAudio(audio, url, vol=0.2){
         return new Promise((resolve, reject) => {
@@ -635,6 +855,27 @@
         if (boat.userData.update) {
           boat.userData.update(delta, time);
         }
+		
+				// Animar bandeiras
+		scene.traverse(obj => {
+		  if (obj.userData.flag) {
+			const flag = obj.userData.flag;
+			const pos = flag.geometry.attributes.position;
+			const orig = flag.userData.originalPosition;
+			const t = clock.getElapsedTime();
+			for (let i = 0; i < pos.count; i++) {
+			  const ix = i * 3;
+			  const x = orig[ix];
+			  const y = orig[ix + 1];
+			  const z = orig[ix + 2];
+			  // Onda tipo vento (mais forte nas pontas)
+			  pos.setZ(i, z + Math.sin(x * 2 + t * 3) * 0.15 * (x/3));
+			}
+			pos.needsUpdate = true;
+			flag.geometry.computeVertexNormals();
+		  }
+		});
+
 
         renderer.render(scene, camera);
       }
