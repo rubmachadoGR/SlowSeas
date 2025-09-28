@@ -498,7 +498,8 @@ function createIslandBanner(imgPath) {
 
   // Bandeira / cartaz (plano com textura)
   const tex = new THREE.TextureLoader().load(imgPath);
-  const flagGeo = new THREE.PlaneGeometry(3.6, 2.4);
+  //const flagGeo = new THREE.PlaneGeometry(3.6, 2.4);
+  const flagGeo = new THREE.PlaneGeometry(3.6, 2.4, 4, 4); // 3x maior
   const flagMat = new THREE.MeshStandardMaterial({
     map: tex,
     side: THREE.DoubleSide,
