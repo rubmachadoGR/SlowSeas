@@ -486,7 +486,7 @@
       }
 
 
-function createIslandBanner_OLD(imgPath) {
+function createIslandBanner(imgPath) {
   const group = new THREE.Group();
 
   // Poste
@@ -511,7 +511,7 @@ function createIslandBanner_OLD(imgPath) {
   return group;
 }
 
-function createIslandBanner(imgPath){
+function createIslandBanner_NEW(imgPath){
     const tex = new THREE.TextureLoader().load(imgPath);
 
     const flagMat = new THREE.MeshBasicMaterial({
