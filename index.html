@@ -69,6 +69,8 @@
     #pauseCard .row>*{flex:1 1 150px}
     .control{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--ui-border);background:rgba(255,255,255,.03)}
     .control input[type=range]{width:140px}
+    #joystick{position:absolute;bottom:90px;left:20px;width:140px;height:140px;border:1px solid var(--ui-border);border-radius:50%;background:var(--ui-bg);backdrop-filter:blur(10px);display:none;pointer-events:auto}
+    #knob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:var(--ui-text);opacity:0.8}
   </style>
 </head>
 <body>
@@ -87,6 +89,7 @@
       <div class="card"><div class="metric">Distance</div><div class="value"><span id="dst">0.00</span> nm</div></div>
       <div class="card"><div class="metric">Time</div><div class="value"><span id="tod">06:00</span></div></div>
     </div>
+    <div id="joystick"><div id="knob"></div></div>
     <div id="minimapWrap"><canvas id="minimap"></canvas></div>
     <div id="centerHint">Use the arrows or WASD to navigate • P pause • M sound • C camera</div>
     <div id="pausePanel" style="pointer-events:auto">
@@ -128,10 +131,13 @@
       let timeOfDay = 6, timeScale = 1.5;
       let listener, ambSound, bgmSound, muted = true;
       const mini = { ctx:null, scale:0.2 };
+      let isMobile;
+      let joystickPos = {x: 0, y: 0};
 
       init().catch(e => fail('Falha ao inicializar: ' + (e?.message||e)));
 
       async function init(){
+        isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         scene = new THREE.Scene();
         clock = new THREE.Clock();
         camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.5, 50000);
@@ -247,6 +253,57 @@
         console.assert(su && su.sunPosition, 'Sky uniform sunPosition OK');
         console.assert(water.material && 'time' in water.material.uniforms, 'Water uniform time OK');
         //diag('Cena inicializada');
+
+        if(isMobile){
+          const minimapWrap = $('minimapWrap');
+          if(minimapWrap) minimapWrap.style.display = 'none';
+          const joystickEl = $('joystick');
+          if(joystickEl) joystickEl.style.display = 'block';
+          const knobEl = $('knob');
+          let touchActive = false;
+          const updateJoystick = (e) => {
+            e.preventDefault();
+            if(e.touches.length === 0) return;
+            const touch = e.touches[0];
+            const rect = joystickEl.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            const maxDist = 60;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxDist) {
+              dx = (dx / dist) * maxDist;
+              dy = (dy / dist) * maxDist;
+            }
+            if(knobEl){
+              knobEl.style.transform = `translate(${dx}px, ${dy}px)`;
+            }
+            joystickPos.x = dx / maxDist;
+            joystickPos.y = dy / maxDist;
+          };
+          joystickEl.addEventListener('touchstart', (e) => {
+            touchActive = true;
+            updateJoystick(e);
+          }, { passive: false });
+          joystickEl.addEventListener('touchmove', (e) => {
+            if (touchActive) {
+              updateJoystick(e);
+            }
+          }, { passive: false });
+          joystickEl.addEventListener('touchend', (e) => {
+            touchActive = false;
+            if(knobEl) knobEl.style.transform = 'translate(0, 0)';
+            joystickPos.x = 0;
+            joystickPos.y = 0;
+          }, { passive: false });
+        }
+
+        const centerHint = $('centerHint');
+        if(centerHint){
+          centerHint.textContent = isMobile ? 'Use the joystick to navigate' : 'Use the arrows or WASD to navigate • P pause • M sound • C camera';
+        }
+
         animate();
       }
 
@@ -696,8 +753,21 @@ function createIslandBanner(imgPath) {
         const maxSpeed = 9.0;
         const turnRate = 0.7;
 
-        if(keys['w'] || keys['arrowup']) boatVel.addScaledVector(forward, accel*delta);
-        if(keys['s'] || keys['arrowdown']) boatVel.addScaledVector(forward, -accel*0.6*delta);
+        let turn = 0;
+
+        if(!isMobile){
+          if(keys['w'] || keys['arrowup']) boatVel.addScaledVector(forward, accel*delta);
+          if(keys['s'] || keys['arrowdown']) boatVel.addScaledVector(forward, -accel*0.6*delta);
+          turn = (keys['a']||keys['arrowleft'] ? 1:0) - (keys['d']||keys['arrowright'] ? 1:0);
+        } else {
+          const forwardInput = - joystickPos.y;
+          const turnInput = - joystickPos.x;
+          if(Math.abs(forwardInput) > 0.05){
+            const fwdAmount = forwardInput > 0 ? accel * delta * forwardInput : -accel * 0.6 * delta * Math.abs(forwardInput);
+            boatVel.addScaledVector(forward, fwdAmount);
+          }
+          turn = turnInput;
+        }
 
         const drag = 1.6;
         boatVel.multiplyScalar(Math.max(0, 1 - drag*delta));
@@ -705,7 +775,6 @@ function createIslandBanner(imgPath) {
         const v = boatVel.length();
         if(v > maxSpeed) boatVel.multiplyScalar(maxSpeed / v);
 
-        const turn = (keys['a']||keys['arrowleft'] ? 1:0) - (keys['d']||keys['arrowright'] ? 1:0);
         const turnAmount = turn * turnRate * delta * THREE.MathUtils.clamp(v / maxSpeed, 0, 1);
         boat.rotateY(turnAmount);
 
