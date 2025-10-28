@@ -536,18 +536,28 @@
         }
 
         // Plantar algumas palmeiras
+
+
         const palms = Math.max(5, Math.floor(radius/8));
-        for (let i=0;i<palms;i++){
-          const ang = Math.random()*Math.PI*2;
-          const r = THREE.MathUtils.lerp(0, radius*0.55, Math.random());
-          const px = Math.cos(ang)*r;
-          const pz = Math.sin(ang)*r;
-          const palm = createPalm();
-          palm.position.set(px, sampleHeightAtPosition(px, pz, island.geometry), pz);
-          palm.lookAt(palm.position.x, palm.position.y + 1.0, palm.position.z + 0.01);
-          palm.rotateY((Math.random()-0.5)*0.6);
-          group.add(palm);
-        }
+          for (let i = 0; i < palms; i++) {
+            const ang = Math.random() * Math.PI * 2;
+            const r = THREE.MathUtils.lerp(0, radius * 0.55, Math.random());
+            const px = Math.cos(ang) * r;
+            const pz = Math.sin(ang) * r;
+            const palm = createPalm();  // Já vertical!
+            
+            palm.position.set(px, sampleHeightAtPosition(px, pz, island.geometry), pz);
+            
+            // lookAt opcional: só se quiser inclinar o topo levemente pra frente (mas teste sem primeiro)
+            // palm.lookAt(palm.position.x, palm.position.y + 1.0, palm.position.z + 0.01);
+            
+            // Variação no Y: gira a palmeira inteira em torno do tronco (vertical)
+            palm.rotation.y = (Math.random() - 0.5) * 0.6;  // Mudei de rotateY para rotation.y (mesmo efeito)
+            
+            group.add(palm);
+          }
+
+
 
         return group;
       }
@@ -759,8 +769,8 @@ function createIslandBanner(imgPath) {
       function handleInput(delta){
         const forward = new THREE.Vector3(0,0,-1).applyQuaternion(boat.quaternion);
 
-        const accel = 6.0;
-        const maxSpeed = 9.0;
+        const accel = 16.0;
+        const maxSpeed = 19.0;
         const turnRate = 0.7;
 
         let turn = 0;
