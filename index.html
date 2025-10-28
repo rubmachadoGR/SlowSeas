@@ -189,53 +189,12 @@
         lastPos.copy(boat.position);
 
 
-// --- adicionar ilha ---
-// Posição: altera X,Z para colocar onde entenderes; aqui deixo um pouco à frente/do lado do ponto inicial.
-const islandGroup = createIsland(48, 160, 9);
-islandGroup.position.set(-100, 0, -100); // muda estes valores se quiseres a ilha noutro local
-scene.add(islandGroup);
-islandGroup.userData.island = true;
+        // --- adicionar ilha ---
+        const island = createIslandandbanner(48, 160, 9, 'google.png', -100, -100);
+        scene.add(island);
 
-const banner = createIslandBanner('google.png'); 
-banner.position.set(10, 5, -8); // (X,Z) = centro da ilha, Y = altura
-islandGroup.add(banner);
-
-// Segunda ilha: mais próxima para teste fácil (à direita e um pouco à frente)
-const islandGroup2 = createIsland(48, 160, 9); // Mesmo tamanho; mude se quiser maior (ex: 60 no raio)
-islandGroup2.position.set(-100, 0, 100); // X=50 (direita), Z=50 (frente) — fácil de alcançar navegando
-scene.add(islandGroup2);
-islandGroup2.userData.island = true;
-
-// Opcional: Banner na segunda ilha (remova essas 3 linhas se der erro de imagem)
-const banner2 = createIslandBanner('google.png'); // Use uma URL válida para teste
-banner2.position.set(10, 5, -8);
-islandGroup2.add(banner2);
-
-
-// Terceira ilha: mais próxima para teste fácil (à direita e um pouco à frente)
-const islandGroup3 = createIsland(48, 160, 9); // Mesmo tamanho; mude se quiser maior (ex: 60 no raio)
-islandGroup3.position.set(100, 0, -100); // X=50 (direita), Z=50 (frente) — fácil de alcançar navegando
-scene.add(islandGroup3);
-islandGroup3.userData.island = true;
-
-// Opcional: Banner na segunda ilha (remova essas 3 linhas se der erro de imagem)
-const banner3 = createIslandBanner('google.png'); // Use uma URL válida para teste
-banner3.position.set(10, 5, -8);
-islandGroup3.add(banner3);
-
-
-
-// Quarta ilha: mais próxima para teste fácil (à direita e um pouco à frente)
-const islandGroup4 = createIsland(48, 160, 9); // Mesmo tamanho; mude se quiser maior (ex: 60 no raio)
-islandGroup4.position.set(100, 0, 100); // X=50 (direita), Z=50 (frente) — fácil de alcançar navegando
-scene.add(islandGroup4);
-islandGroup4.userData.island = true;
-
-// Opcional: Banner na segunda ilha (remova essas 3 linhas se der erro de imagem)
-const banner4 = createIslandBanner('google.png'); // Use uma URL válida para teste
-banner4.position.set(10, 5, -8);
-islandGroup4.add(banner4);
-
+        const island2 = createIslandandbanner(48, 160, 9, 'google.png', 100, -100);
+        scene.add(island2);
 
 
         // Trilho
@@ -483,6 +442,20 @@ islandGroup4.add(banner4);
 
         return g;
       }
+
+
+      function createIslandandbanner(radius = 48, segments = 160, height = 9, bannerImageURL = 'google.png', positionx = 0, positionz = 0) {
+              const island = createIsland(radius, segments, height);
+              island.position.set(positionx, 0, positionz);
+              island.userData.island = true;
+              
+              const banner = createIslandBanner(bannerImageURL);
+              banner.position.set(10, 5, -8); // (X,Z) = centro da ilha, Y = altura
+              island.add(banner);
+
+              return island;              
+      }
+
 
       // --- ISLA / PALMEIRAS ---
       function createIsland(radius = 40, segments = 128, height = 8) {
