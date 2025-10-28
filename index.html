@@ -196,6 +196,12 @@
         const island2 = createIslandandbanner(48, 160, 9, 'google.png', 100, -100);
         scene.add(island2);
 
+        const island3 = createIslandandbanner(48, 160, 9, 'google.png', 100, 300);
+        scene.add(island3);
+
+        const island4 = createIslandandbanner(48, 160, 9, 'google.png', -300, -100);
+        scene.add(island4);
+
 
         // Trilho
         const trailGeo = new THREE.BufferGeometry();
@@ -863,42 +869,68 @@ function createIslandBanner(imgPath) {
        
       }
 
-      function drawMinimap(){
-        const canvas = document.getElementById('minimap');
-        if(!canvas) return;
-        const ctx = mini.ctx || canvas.getContext('2d');
-        mini.ctx = ctx;
-        const w = ctx.canvas.width = ctx.canvas.clientWidth;
-        const h = ctx.canvas.height = ctx.canvas.clientHeight;
+function drawMinimap(){
+  const canvas = document.getElementById('minimap');
+  if(!canvas) return;
+  const ctx = mini.ctx || canvas.getContext('2d');
+  mini.ctx = ctx;
+  const w = ctx.canvas.width = ctx.canvas.clientWidth;
+  const h = ctx.canvas.height = ctx.canvas.clientHeight;
 
-        ctx.clearRect(0,0,w,h);
-        ctx.save();
+  ctx.clearRect(0,0,w,h);
+  ctx.save();
 
-        const grd = ctx.createRadialGradient(w/2,h/2,20,w/2,h/2,70);
-        grd.addColorStop(0, 'rgba(180,220,255,0.25)');
-        grd.addColorStop(1, 'rgba(255,255,255,0.06)');
-        ctx.fillStyle = grd;
-        ctx.fillRect(0,0,w,h);
+  const grd = ctx.createRadialGradient(w/2,h/2,20,w/2,h/2,70);
+  grd.addColorStop(0, 'rgba(180,220,255,0.25)');
+  grd.addColorStop(1, 'rgba(255,255,255,0.06)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0,0,w,h);
 
-        ctx.translate(w/2, h/2);
+  ctx.translate(w/2, h/2);
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        for(let i=0;i<trailPositions.length;i++){
-          const p = trailPositions[i]; if(!p) continue;
-          const x = p.x * mini.scale; const y = p.z * mini.scale;
-          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        }
-        ctx.stroke();
+  // Desenhar rastro do barco (código original)
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for(let i=0;i<trailPositions.length;i++){
+    const p = trailPositions[i]; if(!p) continue;
+    const x = p.x * mini.scale; const y = p.z * mini.scale;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
 
-        ctx.fillStyle = '#ffffff';
-        const bx = boat.position.x * mini.scale;
-        const by = boat.position.z * mini.scale;
-        ctx.beginPath(); ctx.arc(bx, by, 3.5, 0, Math.PI*2); ctx.fill();
+  // Desenhar barco (código original)
+  ctx.fillStyle = '#ffffff';
+  const bx = boat.position.x * mini.scale;
+  const by = boat.position.z * mini.scale;
+  ctx.beginPath(); ctx.arc(bx, by, 3.5, 0, Math.PI*2); ctx.fill();
 
-        ctx.restore();
-      }
+  // <<< NOVO: Coletar e desenhar ilhas como círculos marrons
+  let islandPositions = [];
+  scene.traverse(obj => {
+    if (obj.userData && obj.userData.island) {
+      islandPositions.push(obj.position.clone()); // Posição atual (atualiza com floating origin)
+    }
+  });
+  ctx.fillStyle = '#006400'; // Cor marrom/areia (mude se quiser, ex: '#F4A460' para mais claro)
+  const islandRadius = 18 * mini.scale; // Raio base da ilha (48 do createIsland; ajuste se mudou)
+  islandPositions.forEach(islandPos => {
+    const ix = islandPos.x * mini.scale;
+    const iy = islandPos.z * mini.scale;
+    ctx.beginPath();
+    ctx.arc(ix, iy, Math.max(2, islandRadius), 0, Math.PI*2); // Círculo com raio mínimo 2px
+    ctx.fill();
+    // Opcional: Borda branca fina para destacar
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
+
+
 
       function animate(){
         requestAnimationFrame(animate);
