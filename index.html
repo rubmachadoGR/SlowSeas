@@ -53,7 +53,7 @@
     .metric{font-size:12px;opacity:.85;letter-spacing:.06em;text-transform:uppercase}
     .value{font-size:20px;font-weight:700}
     #topbar{position:absolute;top:16px;left:16px;display:flex;gap:10px;align-items:center}
-    .pill{pointer-events:auto;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--ui-border);color:var(--ui-text);background:var(--ui-bg);font-size:13px}
+    .pill{margin-top:30px; pointer-events:auto;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--ui-border);color:var(--ui-text);background:var(--ui-bg);font-size:13px}
     .pill button{all:unset;cursor:pointer;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.08)}
     .pill button:hover{background:rgba(255,255,255,.16)}
     #minimapWrap{position:absolute;right:20px;bottom:20px;width:140px;height:140px;border-radius:16px;border:1px solid var(--ui-border);background:var(--ui-bg);backdrop-filter:blur(10px);padding:10px}
@@ -71,9 +71,64 @@
     .control input[type=range]{width:140px}
     #joystick{position:absolute;bottom:90px;left:20px;width:140px;height:140px;border:1px solid var(--ui-border);border-radius:50%;background:var(--ui-bg);backdrop-filter:blur(10px);display:none;pointer-events:auto}
     #knob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:var(--ui-text);opacity:0.8}
+  
+  /*Banner*/
+    .banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(8,12,18,.75); /* Adaptado: semi-transparente escuro como --ui-bg, com mais opacidade para destaque */
+      border-bottom: 1px solid rgba(255,255,255,.12); /* Adaptado: borda sutil como --ui-border */
+      color: #eaf2ff; /* Adaptado: texto claro como --ui-text */
+      padding: 10px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      z-index: 999;
+      backdrop-filter: blur(10px); /* Adaptado: blur como nos cards do jogo para coesão */
+    }
+    .scroll-text {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll-left 20s linear infinite;
+      font-size: 14px; /* Adaptado: tamanho legível, próximo ao UI do jogo */
+      letter-spacing: .02em; /* Adaptado: espaçamento sutil como no topbar */
+    }
+    .scroll-text:hover {
+      animation-play-state: paused;
+      cursor: pointer;
+    }
+    @keyframes scroll-left {
+      from {
+        transform: translateX(0%);
+      }
+      to {
+        transform: translateX(-100%);
+      }
+    }
+    a {
+      color: #8fd3ff; /* Adaptado: azul acento como --accent */
+      text-decoration: none; /* Adaptado: sem underline para minimalismo do jogo; hover pode adicionar */
+      font-weight: 500; /* Adaptado: leve bold para destaque sem exagerar */
+    }
+    a:hover {
+      text-decoration: underline; /* Underline só no hover, para interatividade sutil */
+      color: #b3e0ff; /* Hover mais claro do accent para feedback */
+    }
+
   </style>
 </head>
 <body>
+
+ <div class="banner">
+    <div class="scroll-text">
+      <a href="https://www.rubenmachado.pt/" target="_blank" rel="noopener noreferrer">
+        👉 Click here and send me an email if you would like to buy an island.
+      </a>
+    </div>
+  </div>
+
+
   <div id="ui">
     <div id="topbar" class="pill">
       <button id="btnPause" title="Pause (P)">▮▮</button>
