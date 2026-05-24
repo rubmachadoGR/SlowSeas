@@ -2,8 +2,9 @@ FROM node:18
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json* ./
+
+RUN npm cache clean --force && npm install
 
 COPY . .
 
